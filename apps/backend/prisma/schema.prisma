@@ -12,44 +12,49 @@ datasource db {
   provider = "postgresql"
 }
 
-model User{
-  id              String    @id     @default(uuid())
-  username        String
+model User {
+  id              String          @id @default(uuid())
+  username        String          @unique
   password        String
   avatars         Avatar[]
   avatarVideos    AvatarVideo[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
-model Avatar{
-  id              String    @id     @default(uuid())
+model Avatar {
+  id              String                  @id @default(uuid())
   userId          String
   name            String
   avatarImages    AvatarImage[]
   avatarVideoRef  AvatarVideoReference[]
-  user            User      @relation(fields: [userId], references: [id])
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
 }
 
-enum AvatarImageType{
+enum AvatarImageType {
   User
   Model
 }
 
-model AvatarImage{
-  id              String    @id     @default(uuid())
+model AvatarImage {
+  id              String           @id @default(uuid())
   avatarId        String
   type            AvatarImageType
   url             String
-  avatar          Avatar    @relation(fields: [avatarId], references: [id])
+  avatar          Avatar           @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+  createdAt       DateTime         @default(now())
 }
 
-enum AvatarVideoStatus{
+enum AvatarVideoStatus {
   Pending
   Done
   Error
 }
 
-model AvatarVideo{
-  id              String    @id     @default(uuid())
+model AvatarVideo {
+  id              String                  @id @default(uuid())
   userId          String
   prompt          String
   startFrame      String?
@@ -57,15 +62,19 @@ model AvatarVideo{
   duration        Int
   width           Int
   height          Int
-  status          AvatarVideoStatus
+  status          AvatarVideoStatus       @default(Pending)
   avatarVideoRef  AvatarVideoReference[]
-  user            User      @relation(fields: [userId], references: [id])
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
 }
 
 model AvatarVideoReference {
-  id              String    @id     @default(uuid())
+  id              String      @id @default(uuid())
   avatarVideoId   String
   avatarId        String
-  avataVideo      AvatarVideo @relation(fields: [avatarVideoId], references: [id])
-  avatar          Avatar    @relation(fields: [avatarId], references: [id])
+  avatarVideo     AvatarVideo @relation(fields: [avatarVideoId], references: [id], onDelete: Cascade)
+  avatar          Avatar      @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+
+  @@unique([avatarVideoId, avatarId])
 }
